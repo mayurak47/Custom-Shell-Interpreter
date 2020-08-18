@@ -5,9 +5,11 @@
 
 char *line;
 char **args;
+char **history;
 char pwd_buffer[256];
 char user_buffer[256];
 int return_status;
+int curr_command;
+int curr_history_size;
 
-
-char *builtin_commands[] = {"cd", "exit"};
+char *builtin_commands[] = {"cd", "exit", "history"};
