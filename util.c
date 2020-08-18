@@ -13,8 +13,9 @@ void cd();
 void shell_exit();
 void execute();
 void command_loop();
+void shell_history();
 
-void (*builtin_func[]) () = {&cd, &shell_exit};
+void (*builtin_func[]) () = {&cd, &shell_exit, &shell_history};
 
 #define num_builtins sizeof(builtin_commands)/sizeof(char *)
 
@@ -86,6 +87,7 @@ void split_line()
         curr_token = strtok(NULL, DELIMS);
     }
     args[curr_pos] = NULL;
+
 }
 
 void shell_launch()
@@ -155,11 +157,46 @@ void execute()
     shell_launch();
 }
 
+void add_history()
+{
+    if(history == NULL)
+    {
+        history = malloc(curr_history_size * sizeof(char *));
+        if(history == NULL)
+        {
+            fprintf(stderr, "Memory allocation error, exiting.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    history[curr_command] = malloc((strlen(line)+1) * sizeof(char));
+    strcpy (history[curr_command], line);
+    curr_command++;
+    if(curr_command>=curr_history_size)
+    {
+        curr_history_size *= 2;
+        history = realloc(history, curr_history_size);
+        if(history == NULL)
+        {
+            fprintf(stderr, "Memory allocation error, exiting.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+}
 
+void shell_history()
+{
+    for(int i=0; i<curr_command; i++)
+    {
+        printf("%d.\t%s\n", i+1, history[i]);
+    }
+}
 
 void command_loop()
 {
+    history = NULL;
     return_status = 1;
+    curr_command = 0;
+    curr_history_size = BUFSIZE;
     while(true)
     {
         line = NULL;
@@ -168,6 +205,7 @@ void command_loop()
         getlogin_r(user_buffer, sizeof(user_buffer));
         printf("%s@%s $ ", user_buffer, pwd_buffer);
         read_line();
+        add_history();
         split_line();
         execute();
         if(return_status == 0)
