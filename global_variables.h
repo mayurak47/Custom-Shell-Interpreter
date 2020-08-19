@@ -2,6 +2,8 @@
 #define DELIMS " \t\n\r\a"
 #define true 1
 #define false 0
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 char *line;
 char **args;

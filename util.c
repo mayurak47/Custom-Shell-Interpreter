@@ -67,7 +67,11 @@ void split_line()
         exit(EXIT_FAILURE);
     }
 
-    curr_token = strtok(line, DELIMS);
+    int orig_line_len = strlen(line);
+    char *line_copy = malloc((orig_line_len+1) * sizeof(char));
+    strcpy(line_copy, line);
+
+    curr_token = strtok(line_copy, DELIMS);
     while(curr_token != NULL)
     {
         args[curr_pos] = curr_token;
@@ -100,13 +104,13 @@ void shell_launch()
     {
         if(execvp(args[0], args) == -1)
         {
-            perror("exec error: ");
+            perror("exec error");
         }
         exit(EXIT_FAILURE);
     }
     else if(pid < 0)
     {
-        perror("fork error: ");
+        perror("fork error");
     }
     else
     {
@@ -128,7 +132,7 @@ void cd()
     {
         if(chdir(args[1]) != 0)
         {
-            perror("chdir error: ");
+            perror("chdir error");
         }
     }
 }
@@ -185,7 +189,12 @@ void add_history()
 
 void shell_history()
 {
-    for(int i=0; i<curr_command; i++)
+    int start_command = 0;
+    if(args[1] != NULL)
+    {
+        start_command = MAX(curr_command - atoi(args[1]), 0);
+    }
+    for(int i=start_command; i<curr_command; i++)
     {
         printf("%d.\t%s\n", i+1, history[i]);
     }
