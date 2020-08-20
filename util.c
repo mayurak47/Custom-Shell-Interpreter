@@ -14,6 +14,7 @@ void shell_exit();
 void execute();
 void command_loop();
 void shell_history();
+void cleanup();
 
 void (*builtin_func[]) () = {&cd, &shell_exit, &shell_history};
 
@@ -222,3 +223,11 @@ void command_loop()
     }
 }
 
+void cleanup()
+{
+    free(line);
+    free(args);
+    for(int i=0; i<curr_command; i++)
+        free(history[i]);
+    free(history);
+}
