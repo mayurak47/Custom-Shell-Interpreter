@@ -5,9 +5,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <wordexp.h>
 
 void read_line();
 void split_line();
+void expand_args();
 void shell_launch();
 void cd();
 void shell_exit();
@@ -92,6 +94,50 @@ void split_line()
         curr_token = strtok(NULL, DELIMS);
     }
     args[curr_pos] = NULL;
+
+}
+
+void expand_args()
+{
+    int buffer_size = BUFSIZE;
+    int curr_arg_index = 0;
+    int curr_exp_arg_index = 0;
+
+    expanded_args = malloc(buffer_size * sizeof(char *));
+    if(expanded_args == NULL)
+    {
+        fprintf(stderr, "Memory allocation error, exiting.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    wordexp_t p;
+    char **w;
+    
+    while(args[curr_arg_index] != NULL)
+    {
+        wordexp(args[curr_arg_index], &p, 0);
+        w = p.we_wordv;
+        for(int i=0; i<p.we_wordc; i++)
+        {
+            expanded_args[curr_exp_arg_index] = malloc((strlen(w[i])+1) * sizeof(char));
+            strcpy(expanded_args[curr_exp_arg_index], w[i]);
+            curr_exp_arg_index++;
+            if(curr_exp_arg_index >= buffer_size)
+            {
+                buffer_size *= 2;
+                expanded_args = realloc(expanded_args, buffer_size);
+                if(expanded_args == NULL)
+                {
+                    fprintf(stderr, "Memory allocation error, exiting.\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+        curr_arg_index++;
+    }
+    expanded_args[curr_exp_arg_index] = NULL;
+    wordfree(&p);
+    args = expanded_args;
 
 }
 
@@ -217,6 +263,7 @@ void command_loop()
         read_line();
         add_history();
         split_line();
+        expand_args();
         execute();
         if(return_status == 0)
             break;
@@ -228,6 +275,8 @@ void cleanup()
     free(line);
     free(args);
     for(int i=0; i<curr_command; i++)
+    {
         free(history[i]);
+    }
     free(history);
 }

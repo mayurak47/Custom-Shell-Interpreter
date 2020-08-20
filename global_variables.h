@@ -7,6 +7,7 @@
 
 char *line;
 char **args;
+char **expanded_args;
 char **history;
 char pwd_buffer[256];
 char user_buffer[256];
